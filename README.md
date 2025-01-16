@@ -1,89 +1,71 @@
-This script implements a facial recognition-based attendance system using OpenCV, TensorFlow, and MySQL. Here's a step-by-step explanation of how the code works and how to set it up:
+#Attendance Database Reader:
+This is a Python script that connects to an SQLite database called attendance.db, retrieves all records from the attendance table, and prints the retrieved data to the console.
 
-Steps to Set Up and Run the Script:
+#Purpose:
+The script is designed to fetch and display all records from the attendance table in the attendance.db SQLite database. Each record is printed as a tuple, where each element in the tuple represents a field from the corresponding row in the database.
 
-1. Install Required Libraries
+#Requirements:
+-Python 3.x
+-SQLite3 (comes with Python by default)
 
-You need to install the following Python libraries:
--opencv-python: For capturing video and image processing.
--tensorflow: For running the pre-trained model.
--mysql-connector: For interacting with the MySQL database.
--numpy: For numerical operations and image handling.
-Use the following command to install them:
+#Files:
+-attendance.db: SQLite database containing the attendance table.
+-attendance_reader.py: The Python script that connects to the SQLite database and prints the records.
+
+#Installation:
+
+1.Ensure that Python 3.x is installed on your machine. You can download Python from here.
+2.Make sure the attendance.db file exists in the same directory as the Python script, or update the database file path in the script.
+3.The attendance.db database should already contain an attendance table. If not, you need to create it and populate it with records.
+
+#Usage:
+
+1.Open a terminal or command prompt.
+2.Navigate to the directory containing the script and the database file.
+
+#Run the script using Python:
+
 bash
-pip install opencv-python tensorflow mysql-connector numpy
 
-#importing libraries
-import cv2
-import numpy as np
-import mysql.connector
-from tensorflow.keras.models import load_model
-import time
+python attendance_reader.py
+The script will connect to the SQLite database, fetch all records from the attendance table, and print each record as a tuple.
 
+#Example output:
 
-2. Prepare the Model and Label Files
+arduino
 
--Ensure you have the keras_model.h5 (your trained model) and labels.txt (the list of labels, one per line) available in the same directory as the script.
--The model should be trained to recognize the faces you're working with.
+(1, 'John Doe', '2025-01-16', 'Present')
+(2, 'Jane Smith', '2025-01-16', 'Absent')
 
-# Load the model
-model = load_model("keras_model.h5", compile=False)
-# Load the labels
-class_names = open("labels.txt", "r").readlines()
+#Code Breakdown:
 
-
-3. Set Up the MySQL Database
--Create a MySQL database called attendance_system.
--Create a table in the attendance_system database for storing attendance records. The table should look something like this:
-sql:
-CREATE TABLE attendance (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    status VARCHAR(50) NOT NULL,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-Ensure you replace the MySQL connection details (host, user, password, database) with your actual database credentials.
-
-
-4. Adjust the Script
-
-Update the database credentials in the script:
 python
-Copy code
-conn = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="your_password",  # Replace with your MySQL root password
-    database="attendance_system"
-)
--Ensure that the camera index (0 or 1) corresponds to the correct camera on your system.
+import sqlite3
 
+# Connect to the SQLite database
+conn = sqlite3.connect("attendance.db")
+cursor = conn.cursor()
 
-5. Understanding the Main Logic
+# Execute SQL query to select all records from the 'attendance' table
+cursor.execute("SELECT * FROM attendance")
 
--Model Loading: The script loads the pre-trained Keras model (keras_model.h5) and the labels from the labels.txt file.
--Database Connection: A connection to the MySQL database is established for recording attendance.
--Webcam Feed: The script opens a webcam feed using OpenCV. It processes each frame to make predictions about the recognized face.
--Face Recognition and Attendance: The model predicts the face and checks if the confidence score is above a threshold. If the person is recognized, their attendance is recorded in the database, and a cooldown timer ensures that attendance is only recorded once per session.
--Displaying the Feed: The script displays the live webcam feed with the recognized person's name overlayed on the screen.
--Exit Condition: Press the ESC key to stop the program.
+# Fetch all records
+records = cursor.fetchall()
 
+# Loop through and print each record
+for record in records:
+    print(record)
 
-6. Running the Script
-
--Open a terminal or command prompt and run the script:
-bash
--python attendance_system.py
-
-
-7. Working of Attendance Logging
--Once a face is recognized, the system will check if the person has already been marked present in the database.
--If not, the system will insert a new record with the person's name and status as "present".
--If the person’s attendance has already been marked, the script will not mark them again until the cooldown time has passed.
-
-
-8. Exiting the Program
--Press the ESC key to terminate the webcam feed and close the program.
-Notes:
--Model Training: Make sure the model is trained with the same input format (224x224) and class labels.
--Database: The script assumes that the attendance table contains a column for the name of the person and their status. You may want to extend it with additional information like timestamp or location.
+# Close the connection to the database
+conn.close()
+Step 1: The script imports the sqlite3 module to interact with the SQLite database.
+Step 2: It connects to the attendance.db database using sqlite3.connect().
+Step 3: It creates a cursor to execute SQL commands.
+Step 4: The SELECT * FROM attendance SQL command fetches all records from the attendance table.
+Step 5: fetchall() retrieves all records, and each record is printed as a tuple.
+Step 6: Finally, the connection to the database is closed using conn.close().
+Troubleshooting
+Error: sqlite3.OperationalError: no such table: attendance:
+This error occurs if the attendance table does not exist in the database. Make sure the attendance table is created and populated in the attendance.db file.
+Error: sqlite3.DatabaseError: database disk image is malformed:
+This error indicates that the database file might be corrupted. You may need to create a new database or restore a backup.
